@@ -1,5 +1,5 @@
 /**
- * spawnWorker
+ * SpawnWorker
  *
  * @name spawnWorker
  * @function create a new Worker in browser

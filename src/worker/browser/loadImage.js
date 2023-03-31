@@ -1,27 +1,32 @@
 const resolveURL = require('resolve-url');
 
 /**
- * readFromBlobOrFile
+ * ReadFromBlobOrFile
  *
  * @name readFromBlobOrFile
  * @function
  * @access private
  */
-const readFromBlobOrFile = (blob) => (
+const readFromBlobOrFile = (blob) =>
   new Promise((resolve, reject) => {
     const fileReader = new FileReader();
     fileReader.onload = () => {
       resolve(fileReader.result);
     };
-    fileReader.onerror = ({ target: { error: { code } } }) => {
+
+    fileReader.onerror = ({
+      target: {
+        error: { code },
+      },
+    }) => {
       reject(Error(`File could not be read! Code=${code}`));
     };
+
     fileReader.readAsArrayBuffer(blob);
-  })
-);
+  });
 
 /**
- * loadImage
+ * LoadImage
  *
  * @name loadImage
  * @function load image from different source
@@ -47,9 +52,11 @@ const loadImage = async (image) => {
     if (image.tagName === 'IMG') {
       data = await loadImage(image.src);
     }
+
     if (image.tagName === 'VIDEO') {
       data = await loadImage(image.poster);
     }
+
     if (image.tagName === 'CANVAS') {
       await new Promise((resolve) => {
         image.toBlob(async (blob) => {

@@ -2,7 +2,7 @@ const { simd } = require('wasm-feature-detect');
 
 let TesseractCore = null;
 /*
- * getCore is a sync function to load and return
+ * GetCore is a sync function to load and return
  * TesseractCore.
  */
 module.exports = async (_, res) => {
@@ -14,7 +14,9 @@ module.exports = async (_, res) => {
     } else {
       TesseractCore = require('tesseract.js-core/tesseract-core');
     }
+
     res.progress({ status: 'loaded tesseract core', progress: 1 });
   }
+
   return TesseractCore;
 };

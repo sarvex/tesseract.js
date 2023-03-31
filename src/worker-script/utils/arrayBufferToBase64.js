@@ -4,15 +4,18 @@
 /* eslint no-bitwise: 0 */
 module.exports = (arrayBuffer) => {
   let base64 = '';
-  const encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const encodings =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
   const bytes = new Uint8Array(arrayBuffer);
   const { byteLength } = bytes;
   const byteRemainder = byteLength % 3;
   const mainLength = byteLength - byteRemainder;
 
-  let a; let b; let c; let
-    d;
+  let a;
+  let b;
+  let c;
+  let d;
   let chunk;
 
   // Main loop deals with bytes in chunks of 3

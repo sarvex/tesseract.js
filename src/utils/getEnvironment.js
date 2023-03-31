@@ -1,6 +1,6 @@
 const isElectron = require('is-electron');
 
-module.exports = (key) => {
+export const isWebWorker = (key) => {
   const env = {};
 
   if (typeof WorkerGlobalScope !== 'undefined') {

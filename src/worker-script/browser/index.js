@@ -14,19 +14,19 @@ const gunzip = require('./gunzip');
 const cache = require('./cache');
 
 /*
- * register message handler
+ * Register message handler
  */
 global.addEventListener('message', ({ data }) => {
   worker.dispatchHandlers(data, (obj) => postMessage(obj));
 });
 
 /*
- * getCore is a sync function to load and return
+ * GetCore is a sync function to load and return
  * TesseractCore.
  */
 worker.setAdapter({
   getCore,
   gunzip,
-  fetch: () => {},
+  fetch() {},
   ...cache,
 });

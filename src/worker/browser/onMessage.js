@@ -1,5 +1,5 @@
 module.exports = (worker, handler) => {
-  worker.onmessage = ({ data }) => { // eslint-disable-line
+  worker.onmessage = ({ data }) => {
     handler(data);
   };
 };

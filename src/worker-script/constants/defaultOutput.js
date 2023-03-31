@@ -1,8 +1,8 @@
 /*
- * default output formats for tesseract.js
+ * Default output formats for tesseract.js
  */
 
-module.exports = {
+export const defaultOutput = {
   text: true,
   blocks: true,
   hocr: true,

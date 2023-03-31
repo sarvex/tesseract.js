@@ -16,7 +16,7 @@ const gunzip = require('./gunzip');
 const cache = require('./cache');
 
 /*
- * register message handler
+ * Register message handler
  */
 parentPort.on('message', (packet) => {
   worker.dispatchHandlers(packet, (obj) => parentPort.postMessage(obj));

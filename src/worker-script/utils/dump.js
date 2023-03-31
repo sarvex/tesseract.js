@@ -11,7 +11,7 @@ const arrayBufferToBase64 = require('./arrayBufferToBase64');
 const imageType = require('../../constants/imageType');
 
 /**
- * deindent
+ * Deindent
  *
  * The generated HOCR is excessively indented, so
  * we get rid of that indentation
@@ -29,25 +29,21 @@ const deindent = (html) => {
       }
     }
   }
+
   return lines.join('\n');
 };
 
 /**
- * dump
+ * Dump
  *
  * @name dump
  * @function dump recognition result to a JSON object
  * @access public
  */
-module.exports = (TessModule, api, output, options) => {
+export const dump = (TessModule, api, output, options) => {
   const ri = api.GetIterator();
-  const {
-    RIL_BLOCK,
-    RIL_PARA,
-    RIL_TEXTLINE,
-    RIL_WORD,
-    RIL_SYMBOL,
-  } = TessModule;
+  const { RIL_BLOCK, RIL_PARA, RIL_TEXTLINE, RIL_WORD, RIL_SYMBOL } =
+    TessModule;
   const blocks = [];
   let block;
   let para;
@@ -55,22 +51,27 @@ module.exports = (TessModule, api, output, options) => {
   let word;
   let symbol;
 
-  const enumToString = (value, prefix) => (
+  const enumToString = (value, prefix) =>
     Object.keys(TessModule)
-      .filter((e) => (e.startsWith(`${prefix}_`) && TessModule[e] === value))
-      .map((e) => e.slice(prefix.length + 1))[0]
-  );
+      .filter((e) => e.startsWith(`${prefix}_`) && TessModule[e] === value)
+      .map((e) => e.slice(prefix.length + 1))[0];
 
   const getImage = (type) => {
     api.WriteImage(type, '/image.png');
     const pngBuffer = TessModule.FS.readFile('/image.png');
-    const pngStr = `data:image/png;base64,${arrayBufferToBase64(pngBuffer.buffer)}`;
+    const pngStr = `data:image/png;base64,${arrayBufferToBase64(
+      pngBuffer.buffer,
+    )}`;
     TessModule.FS.unlink('/image.png');
     return pngStr;
   };
 
   const getPDFInternal = (title, textonly) => {
-    const pdfRenderer = new TessModule.TessPDFRenderer('tesseract-ocr', '/', textonly);
+    const pdfRenderer = new TessModule.TessPDFRenderer(
+      'tesseract-ocr',
+      '/',
+      textonly,
+    );
     pdfRenderer.BeginDocument(title);
     pdfRenderer.AddImage(api);
     pdfRenderer.EndDocument();
@@ -111,6 +112,7 @@ module.exports = (TessModule, api, output, options) => {
         };
         blocks.push(block);
       }
+
       if (ri.IsAtBeginningOf(RIL_PARA)) {
         para = {
           lines: [],
@@ -118,10 +120,11 @@ module.exports = (TessModule, api, output, options) => {
           confidence: ri.Confidence(RIL_PARA),
           baseline: ri.getBaseline(RIL_PARA),
           bbox: ri.getBoundingBox(RIL_PARA),
-          is_ltr: !!ri.ParagraphIsLtr(),
+          is_ltr: Boolean(ri.ParagraphIsLtr()),
         };
         block.paragraphs.push(para);
       }
+
       if (ri.IsAtBeginningOf(RIL_TEXTLINE)) {
         textline = {
           words: [],
@@ -132,6 +135,7 @@ module.exports = (TessModule, api, output, options) => {
         };
         para.lines.push(textline);
       }
+
       if (ri.IsAtBeginningOf(RIL_WORD)) {
         const fontInfo = ri.getWordFontAttributes();
         const wordDir = ri.WordDirection();
@@ -144,8 +148,8 @@ module.exports = (TessModule, api, output, options) => {
           baseline: ri.getBaseline(RIL_WORD),
           bbox: ri.getBoundingBox(RIL_WORD),
 
-          is_numeric: !!ri.WordIsNumeric(),
-          in_dictionary: !!ri.WordIsFromDictionary(),
+          is_numeric: Boolean(ri.WordIsNumeric()),
+          in_dictionary: Boolean(ri.WordIsFromDictionary()),
           direction: enumToString(wordDir, 'DIR'),
           language: ri.WordRecognitionLanguage(),
 
@@ -166,11 +170,12 @@ module.exports = (TessModule, api, output, options) => {
             confidence: wc.Confidence(),
           });
         } while (wc.Next());
+
         TessModule.destroy(wc);
         textline.words.push(word);
       }
 
-      // let image = null;
+      // Let image = null;
       // var pix = ri.GetBinaryImage(TessModule.RIL_SYMBOL)
       // var image = pix2array(pix);
       // // for some reason it seems that things stop working if you destroy pics
@@ -183,9 +188,9 @@ module.exports = (TessModule, api, output, options) => {
           confidence: ri.Confidence(RIL_SYMBOL),
           baseline: ri.getBaseline(RIL_SYMBOL),
           bbox: ri.getBoundingBox(RIL_SYMBOL),
-          is_superscript: !!ri.SymbolIsSuperscript(),
-          is_subscript: !!ri.SymbolIsSubscript(),
-          is_dropcap: !!ri.SymbolIsDropcap(),
+          isSuperscript: Boolean(ri.SymbolIsSuperscript()),
+          isSubscript: Boolean(ri.SymbolIsSubscript()),
+          isDropcap: Boolean(ri.SymbolIsDropcap()),
         };
         word.symbols.push(symbol);
         const ci = new TessModule.ChoiceIterator(ri);
@@ -198,6 +203,7 @@ module.exports = (TessModule, api, output, options) => {
         // TessModule.destroy(i);
       }
     } while (ri.Next(RIL_SYMBOL));
+
     TessModule.destroy(ri);
   }
 
@@ -208,7 +214,12 @@ module.exports = (TessModule, api, output, options) => {
     box: output.box ? api.GetBoxText() : null,
     unlv: output.unlv ? api.GetUNLVText() : null,
     osd: output.osd ? api.GetOsdText() : null,
-    pdf: output.pdf ? getPDFInternal(options.pdfTitle ?? 'Tesseract OCR Result', options.pdfTextOnly ?? false) : null,
+    pdf: output.pdf
+      ? getPDFInternal(
+          options.pdfTitle ?? 'Tesseract OCR Result',
+          options.pdfTextOnly ?? false,
+        )
+      : null,
     imageColor: output.imageColor ? getImage(imageType.COLOR) : null,
     imageGrey: output.imageGrey ? getImage(imageType.GREY) : null,
     imageBinary: output.imageBinary ? getImage(imageType.BINARY) : null,
@@ -217,6 +228,11 @@ module.exports = (TessModule, api, output, options) => {
     psm: enumToString(api.GetPageSegMode(), 'PSM'),
     oem: enumToString(api.oem(), 'OEM'),
     version: api.Version(),
-    debug: output.debug ? TessModule.FS.readFile('/debugInternal.txt', { encoding: 'utf8', flags: 'a+' }) : null,
+    debug: output.debug
+      ? TessModule.FS.readFile('/debugInternal.txt', {
+          encoding: 'utf8',
+          flags: 'a+',
+        })
+      : null,
   };
 };

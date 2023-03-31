@@ -6,5 +6,12 @@ const defaultOptions = require('../../constants/defaultOptions');
  */
 module.exports = {
   ...defaultOptions,
-  workerPath: path.join(__dirname, '..', '..', 'worker-script', 'node', 'index.js'),
+  workerPath: path.join(
+    __dirname,
+    '..',
+    '..',
+    'worker-script',
+    'node',
+    'index.js',
+  ),
 };

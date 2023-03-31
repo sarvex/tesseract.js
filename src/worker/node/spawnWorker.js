@@ -1,7 +1,7 @@
 const { Worker } = require('worker_threads');
 
 /**
- * spawnWorker
+ * SpawnWorker
  *
  * @name spawnWorker
  * @function fork a new process in node

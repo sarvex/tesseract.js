@@ -1,5 +1,5 @@
 /**
- * send
+ * Send
  *
  * @name send
  * @function send packet to worker and create a job

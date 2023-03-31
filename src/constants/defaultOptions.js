@@ -1,6 +1,6 @@
 module.exports = {
   /*
-   * default path for downloading *.traineddata
+   * Default path for downloading *.traineddata
    */
   langPath: 'https://tessdata.projectnaptha.com/4.0.0',
   /*
@@ -9,5 +9,5 @@ module.exports = {
    *
    */
   workerBlobURL: true,
-  logger: () => {},
+  logger() {},
 };

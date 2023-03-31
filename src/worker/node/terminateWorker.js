@@ -1,10 +1,10 @@
 /**
- * terminateWorker
+ * TerminateWorker
  *
  * @name terminateWorker
  * @function kill worker
  * @access public
  */
-module.exports = (worker) => {
+export const terminateWorker = (worker) => {
   worker.terminate();
 };

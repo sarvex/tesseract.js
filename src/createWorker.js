@@ -17,11 +17,7 @@ let workerCounter = 0;
 
 module.exports = async (_options = {}) => {
   const id = getId('Worker', workerCounter);
-  const {
-    logger,
-    errorHandler,
-    ...options
-  } = resolvePaths({
+  const { logger, errorHandler, ...options } = resolvePaths({
     ...defaultOptions,
     ..._options,
   });
@@ -34,7 +30,9 @@ module.exports = async (_options = {}) => {
     workerResResolve = resolve;
     workerResReject = reject;
   });
-  const workerError = (event) => { workerResReject(event.message); };
+  const workerError = (event) => {
+    workerResReject(event.message);
+  };
 
   let worker = spawnWorker(options);
   worker.onerror = workerError;
@@ -49,7 +47,7 @@ module.exports = async (_options = {}) => {
     rejects[action] = rej;
   };
 
-  const startJob = ({ id: jobId, action, payload }) => (
+  const startJob = ({ id: jobId, action, payload }) =>
     new Promise((resolve, reject) => {
       log(`[${id}]: Start ${jobId}, action=${action}`);
       setResolve(action, resolve);
@@ -60,106 +58,130 @@ module.exports = async (_options = {}) => {
         action,
         payload,
       });
-    })
-  );
+    });
 
-  const load = () => (
-    console.warn('`load` is depreciated and should be removed from code (workers now come pre-loaded)')
-  );
+  const load = () =>
+    console.warn(
+      '`load` is depreciated and should be removed from code (workers now come pre-loaded)',
+    );
 
-  const loadInternal = (jobId) => (
-    startJob(createJob({
-      id: jobId, action: 'load', payload: { options },
-    }))
-  );
+  const loadInternal = (jobId) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'load',
+        payload: { options },
+      }),
+    );
 
-  const writeText = (path, text, jobId) => (
-    startJob(createJob({
-      id: jobId,
-      action: 'FS',
-      payload: { method: 'writeFile', args: [path, text] },
-    }))
-  );
+  const writeText = (path, text, jobId) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'FS',
+        payload: { method: 'writeFile', args: [path, text] },
+      }),
+    );
 
-  const readText = (path, jobId) => (
-    startJob(createJob({
-      id: jobId,
-      action: 'FS',
-      payload: { method: 'readFile', args: [path, { encoding: 'utf8' }] },
-    }))
-  );
+  const readText = (path, jobId) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'FS',
+        payload: { method: 'readFile', args: [path, { encoding: 'utf8' }] },
+      }),
+    );
 
-  const removeFile = (path, jobId) => (
-    startJob(createJob({
-      id: jobId,
-      action: 'FS',
-      payload: { method: 'unlink', args: [path] },
-    }))
-  );
+  const removeFile = (path, jobId) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'FS',
+        payload: { method: 'unlink', args: [path] },
+      }),
+    );
 
-  const FS = (method, args, jobId) => (
-    startJob(createJob({
-      id: jobId,
-      action: 'FS',
-      payload: { method, args },
-    }))
-  );
+  const FS = (method, args, jobId) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'FS',
+        payload: { method, args },
+      }),
+    );
 
-  const loadLanguage = (langs = 'eng', jobId) => (
-    startJob(createJob({
-      id: jobId,
-      action: 'loadLanguage',
-      payload: { langs, options },
-    }))
-  );
+  const loadLanguage = (langs = 'eng', jobId) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'loadLanguage',
+        payload: { langs, options },
+      }),
+    );
 
-  const initialize = (langs = 'eng', oem = defaultOEM, config, jobId) => (
-    startJob(createJob({
-      id: jobId,
-      action: 'initialize',
-      payload: { langs, oem, config },
-    }))
-  );
+  const initialize = (langs = 'eng', oem = defaultOEM, config, jobId) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'initialize',
+        payload: { langs, oem, config },
+      }),
+    );
 
-  const setParameters = (params = {}, jobId) => (
-    startJob(createJob({
-      id: jobId,
-      action: 'setParameters',
-      payload: { params },
-    }))
-  );
+  const setParameters = (params = {}, jobId) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'setParameters',
+        payload: { params },
+      }),
+    );
 
-  const recognize = async (image, opts = {}, output = {
-    blocks: true, text: true, hocr: true, tsv: true,
-  }, jobId) => (
-    startJob(createJob({
-      id: jobId,
-      action: 'recognize',
-      payload: { image: await loadImage(image), options: opts, output },
-    }))
-  );
+  const recognize = async (
+    image,
+    opts = {},
+    output = {
+      blocks: true,
+      text: true,
+      hocr: true,
+      tsv: true,
+    },
+    jobId,
+  ) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'recognize',
+        payload: { image: await loadImage(image), options: opts, output },
+      }),
+    );
 
   const getPDF = (title = 'Tesseract OCR Result', textonly = false, jobId) => {
-    console.log('`getPDF` function is depreciated. `recognize` option `savePDF` should be used instead.');
-    return startJob(createJob({
-      id: jobId,
-      action: 'getPDF',
-      payload: { title, textonly },
-    }));
+    console.log(
+      '`getPDF` function is depreciated. `recognize` option `savePDF` should be used instead.',
+    );
+    return startJob(
+      createJob({
+        id: jobId,
+        action: 'getPDF',
+        payload: { title, textonly },
+      }),
+    );
   };
 
-  const detect = async (image, jobId) => (
-    startJob(createJob({
-      id: jobId,
-      action: 'detect',
-      payload: { image: await loadImage(image) },
-    }))
-  );
+  const detect = async (image, jobId) =>
+    startJob(
+      createJob({
+        id: jobId,
+        action: 'detect',
+        payload: { image: await loadImage(image) },
+      }),
+    );
 
   const terminate = async () => {
     if (worker !== null) {
       /*
-      await startJob(createJob({
+      Await startJob(createJob({
         id: jobId,
         action: 'terminate',
       }));
@@ -167,12 +189,11 @@ module.exports = async (_options = {}) => {
       terminateWorker(worker);
       worker = null;
     }
+
     return Promise.resolve();
   };
 
-  onMessage(worker, ({
-    workerId, jobId, status, action, data,
-  }) => {
+  onMessage(worker, ({ workerId, jobId, status, action, data }) => {
     if (status === 'resolve') {
       log(`[${workerId}]: Complete ${jobId}`);
       let d = data;
@@ -181,6 +202,7 @@ module.exports = async (_options = {}) => {
       } else if (action === 'getPDF') {
         d = Array.from({ ...data, length: Object.keys(data).length });
       }
+
       resolves[action]({ jobId, data: d });
     } else if (status === 'reject') {
       rejects[action](data);
@@ -214,7 +236,9 @@ module.exports = async (_options = {}) => {
     terminate,
   };
 
-  loadInternal().then(() => workerResResolve(resolveObj)).catch(() => {});
+  loadInternal()
+    .then(() => workerResResolve(resolveObj))
+    .catch(() => {});
 
   return workerRes;
 };

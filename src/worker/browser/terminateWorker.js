@@ -1,5 +1,5 @@
 /**
- * terminateWorker
+ * TerminateWorker
  *
  * @name terminateWorker
  * @function terminate worker

@@ -1,6 +1,6 @@
 const path = require('path');
-const common = require('./webpack.config.common');
 const webpack = require('webpack');
+const common = require('./webpack.config.common');
 
 const genConfig = ({
   entry, filename, library, libraryTarget,
@@ -15,11 +15,6 @@ const genConfig = ({
     library,
     libraryTarget,
   },
-  plugins: [
-    new webpack.ProvidePlugin({
-      Buffer: ['buffer', 'Buffer'],
-    }),
-  ]
 });
 
 module.exports = [

@@ -7,16 +7,16 @@
  * @author Guillermo Webster <gui@mit.edu>
  * @author Jerome Wu <jeromewus@gmail.com>
  */
-require('regenerator-runtime/runtime');
-const fileType = require('file-type');
-const isURL = require('is-url');
-const dump = require('./utils/dump');
-const isWebWorker = require('../utils/getEnvironment')('type') === 'webworker';
-const setImage = require('./utils/setImage');
-const defaultParams = require('./constants/defaultParams');
-const defaultOutput = require('./constants/defaultOutput');
-const { log, setLogging } = require('../utils/log');
-const PSM = require('../constants/PSM');
+import 'regenerator-runtime/runtime';
+import filetype from 'magic-bytes.js';
+import isURL from 'is-url';
+import { dump } from './utils/dump';
+import { isWebWorker } from '../utils/getEnvironment';
+import { setImage } from './utils/setImage';
+import { defaultParams } from './constants/defaultParams';
+import { defaultOutput } from './constants/defaultOutput';
+import { log, setLogging } from '../utils/log';
+import { PSM } from '../constants/PSM';
 
 /*
  * Tesseract Module returned by TesseractCore.
@@ -30,7 +30,16 @@ let latestJob;
 let adapter = {};
 let params = defaultParams;
 
-const load = async ({ workerId, jobId, payload: { options: { corePath, logging } } }, res) => {
+const load = async (
+  {
+    workerId,
+    jobId,
+    payload: {
+      options: { corePath, logging },
+    },
+  },
+  res,
+) => {
   setLogging(logging);
   if (!TessModule) {
     const Core = await adapter.getCore(corePath, res);
@@ -61,20 +70,16 @@ const FS = async ({ workerId, payload: { method, args } }, res) => {
   res.resolve(TessModule.FS[method](...args));
 };
 
-const loadLanguage = async ({
-  workerId,
-  payload: {
-    langs,
-    options: {
-      langPath,
-      dataPath,
-      cachePath,
-      cacheMethod,
-      gzip = true,
+const loadLanguage = async (
+  {
+    workerId,
+    payload: {
+      langs,
+      options: { langPath, dataPath, cachePath, cacheMethod, gzip = true },
     },
   },
-},
-res) => {
+  res,
+) => {
   const loadAndGunzipFile = async (_lang) => {
     const lang = typeof _lang === 'string' ? _lang : _lang.code;
     const readCache = ['refresh', 'none'].includes(cacheMethod)
@@ -87,7 +92,11 @@ res) => {
       const _data = await readCache(`${cachePath || '.'}/${lang}.traineddata`);
       if (typeof _data !== 'undefined') {
         log(`[${workerId}]: Load ${lang}.traineddata from cache`);
-        res.progress({ workerId, status: 'loading language traineddata (from cache)', progress: 0.5 });
+        res.progress({
+          workerId,
+          status: 'loading language traineddata (from cache)',
+          progress: 0.5,
+        });
         data = _data;
       } else {
         throw Error('Not found in cache');
@@ -98,7 +107,13 @@ res) => {
       if (typeof _lang === 'string') {
         let path = null;
 
-        if (isURL(langPath) || langPath.startsWith('moz-extension://') || langPath.startsWith('chrome-extension://') || langPath.startsWith('file://')) { /** When langPath is an URL */
+        if (
+          isURL(langPath) ||
+          langPath.startsWith('moz-extension://') ||
+          langPath.startsWith('chrome-extension://') ||
+          langPath.startsWith('file://')
+        ) {
+          /** When langPath is an URL */
           path = langPath.replace(/\/$/, '');
         }
 
@@ -106,20 +121,25 @@ res) => {
           const fetchUrl = `${path}/${lang}.traineddata${gzip ? '.gz' : ''}`;
           const resp = await (isWebWorker ? fetch : adapter.fetch)(fetchUrl);
           if (!resp.ok) {
-            throw Error(`Network error while fetching ${fetchUrl}. Response code: ${resp.status}`);
+            throw Error(
+              `Network error while fetching ${fetchUrl}. Response code: ${resp.status}`,
+            );
           }
+
           data = await resp.arrayBuffer();
         } else {
-          data = await adapter.readCache(`${langPath}/${lang}.traineddata${gzip ? '.gz' : ''}`);
+          data = await adapter.readCache(
+            `${langPath}/${lang}.traineddata${gzip ? '.gz' : ''}`,
+          );
         }
       } else {
-        data = _lang.data; // eslint-disable-line
+        data = _lang.data;
       }
     }
 
     data = new Uint8Array(data);
 
-    const type = fileType(data);
+    const type = filetype(data);
     if (typeof type !== 'undefined' && type.mime === 'application/gzip') {
       data = adapter.gunzip(data);
     }
@@ -132,14 +152,20 @@ res) => {
           res.reject(err.toString());
         }
       }
+
       TessModule.FS.writeFile(`${dataPath || '.'}/${lang}.traineddata`, data);
     }
 
     if (newData && ['write', 'refresh', undefined].includes(cacheMethod)) {
       try {
-        await adapter.writeCache(`${cachePath || '.'}/${lang}.traineddata`, data);
+        await adapter.writeCache(
+          `${cachePath || '.'}/${lang}.traineddata`,
+          data,
+        );
       } catch (err) {
-        log(`[${workerId}]: Failed to write ${lang}.traineddata to cache due to error:`);
+        log(
+          `[${workerId}]: Failed to write ${lang}.traineddata to cache due to error:`,
+        );
         log(err.toString());
       }
     }
@@ -147,10 +173,22 @@ res) => {
     return Promise.resolve(data);
   };
 
-  res.progress({ workerId, status: 'loading language traineddata', progress: 0 });
+  res.progress({
+    workerId,
+    status: 'loading language traineddata',
+    progress: 0,
+  });
   try {
-    await Promise.all((typeof langs === 'string' ? langs.split('+') : langs).map(loadAndGunzipFile));
-    res.progress({ workerId, status: 'loaded language traineddata', progress: 1 });
+    await Promise.all(
+      (typeof langs === 'string' ? langs.split('+') : langs).map(
+        loadAndGunzipFile,
+      ),
+    );
+    res.progress({
+      workerId,
+      status: 'loaded language traineddata',
+      progress: 1,
+    });
     res.resolve(langs);
   } catch (err) {
     res.reject(err.toString());
@@ -170,30 +208,38 @@ const setParameters = async ({ payload: { params: _params } }, res) => {
   }
 };
 
-const initialize = async ({
-  workerId,
-  payload: { langs: _langs, oem, config },
-}, res) => {
-  const langs = (typeof _langs === 'string')
-    ? _langs
-    : _langs.map((l) => ((typeof l === 'string') ? l : l.data)).join('+');
+const initialize = async (
+  { workerId, payload: { langs: _langs, oem, config } },
+  res,
+) => {
+  const langs =
+    typeof _langs === 'string'
+      ? _langs
+      : _langs.map((l) => (typeof l === 'string' ? l : l.data)).join('+');
 
   try {
     res.progress({
-      workerId, status: 'initializing api', progress: 0,
+      workerId,
+      status: 'initializing api',
+      progress: 0,
     });
     if (api !== null) {
       api.End();
     }
+
     let configFile;
     let configStr;
-    // config argument may either be config file text, or object with key/value pairs
+    // Config argument may either be config file text, or object with key/value pairs
     // In the latter case we convert to config file text here
     if (typeof config === 'object') {
-      configStr = JSON.stringify(config).replace(/,/g, '\n').replace(/:/g, ' ').replace(/["'{}]/g, '');
+      configStr = JSON.stringify(config)
+        .replace(/,/g, '\n')
+        .replace(/:/g, ' ')
+        .replace(/["'{}]/g, '');
     } else {
       configStr = config;
     }
+
     if (typeof configStr === 'string') {
       configFile = '/config';
       TessModule.FS.writeFile(configFile, configStr);
@@ -204,10 +250,13 @@ const initialize = async ({
     if (status === -1) {
       res.reject('initialization failed');
     }
+
     params = defaultParams;
     await setParameters({ payload: { params } });
     res.progress({
-      workerId, status: 'initialized api', progress: 1,
+      workerId,
+      status: 'initialized api',
+      progress: 1,
     });
     res.resolve();
   } catch (err) {
@@ -216,7 +265,11 @@ const initialize = async ({
 };
 
 const getPDFInternal = (title, textonly) => {
-  const pdfRenderer = new TessModule.TessPDFRenderer('tesseract-ocr', '/', textonly);
+  const pdfRenderer = new TessModule.TessPDFRenderer(
+    'tesseract-ocr',
+    '/',
+    textonly,
+  );
   pdfRenderer.BeginDocument(title);
   pdfRenderer.AddImage(api);
   pdfRenderer.EndDocument();
@@ -246,6 +299,7 @@ const processOutput = (output) => {
   for (const prop of Object.keys(output)) {
     workingOutput[prop] = output[prop];
   }
+
   for (const prop of Object.keys(workingOutput)) {
     if (workingOutput[prop]) {
       if (!nonRecOutputs.includes(prop)) {
@@ -253,18 +307,21 @@ const processOutput = (output) => {
       }
     }
   }
+
   return { workingOutput, recOutputCount };
 };
 
 // List of options for Tesseract.js (rather than passed through to Tesseract),
 // not including those with prefix "tessjs_"
-const tessjsOptions = ['rectangle', 'pdfTitle', 'pdfTextOnly', 'rotateAuto', 'rotateRadians'];
+const tessjsOptions = [
+  'rectangle',
+  'pdfTitle',
+  'pdfTextOnly',
+  'rotateAuto',
+  'rotateRadians',
+];
 
-const recognize = async ({
-  payload: {
-    image, options, output,
-  },
-}, res) => {
+const recognize = async ({ payload: { image, options, output } }, res) => {
   try {
     const optionsTess = {};
     if (typeof options === 'object' && Object.keys(options).length > 0) {
@@ -276,10 +333,12 @@ const recognize = async ({
         }
       }
     }
+
     if (output.debug) {
       optionsTess.debug_file = '/debugInternal.txt';
       TessModule.FS.writeFile('/debugInternal.txt', '');
     }
+
     // If any parameters are changed here they are changed back at the end
     if (Object.keys(optionsTess).length > 0) {
       api.SaveParameters();
@@ -322,6 +381,7 @@ const recognize = async ({
         if (psmEdit) {
           setImage(TessModule, api, image);
         }
+
         rotateRadiansFinal = 0;
       }
     } else {
@@ -337,11 +397,17 @@ const recognize = async ({
     if (recOutputCount > 0) {
       api.Recognize(null);
     } else {
-      log('Skipping recognition: all output options requiring recognition are disabled.');
+      log(
+        'Skipping recognition: all output options requiring recognition are disabled.',
+      );
     }
+
     const { pdfTitle } = options;
     const { pdfTextOnly } = options;
-    const result = dump(TessModule, api, workingOutput, { pdfTitle, pdfTextOnly });
+    const result = dump(TessModule, api, workingOutput, {
+      pdfTitle,
+      pdfTextOnly,
+    });
     result.rotateRadians = rotateRadiansFinal;
 
     if (output.debug) TessModule.FS.unlink('/debugInternal.txt');
@@ -392,6 +458,7 @@ const terminate = async (_, res) => {
     if (api !== null) {
       api.End();
     }
+
     res.resolve({ terminated: true });
   } catch (err) {
     res.reject(err.toString());
@@ -399,7 +466,7 @@ const terminate = async (_, res) => {
 };
 
 /**
- * dispatchHandlers
+ * DispatchHandlers
  *
  * @name dispatchHandlers
  * @function worker data handler
@@ -418,6 +485,7 @@ exports.dispatchHandlers = (packet, send) => {
       data,
     });
   };
+
   res.resolve = res.bind(this, 'resolve');
   res.reject = res.bind(this, 'reject');
   res.progress = res.bind(this, 'progress');
@@ -434,12 +502,13 @@ exports.dispatchHandlers = (packet, send) => {
     getPDF,
     detect,
     terminate,
-  })[packet.action](packet, res)
+  })
+    [packet.action](packet, res)
     .catch((err) => res.reject(err.toString()));
 };
 
 /**
- * setAdapter
+ * SetAdapter
  *
  * @name setAdapter
  * @function

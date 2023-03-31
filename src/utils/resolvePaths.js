@@ -1,5 +1,5 @@
 const isBrowser = require('./getEnvironment')('type') === 'browser';
-const resolveURL = isBrowser ? require('resolve-url') : s => s; // eslint-disable-line
+const resolveURL = isBrowser ? require('resolve-url') : (s) => s;
 
 module.exports = (options) => {
   const opts = { ...options };

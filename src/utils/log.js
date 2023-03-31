@@ -2,8 +2,9 @@ let logging = false;
 
 exports.logging = logging;
 
-exports.setLogging = (_logging) => {
+export const setLogging = (_logging) => {
   logging = _logging;
 };
 
-exports.log = (...args) => (logging ? console.log.apply(this, args) : null);
+export const log = (...args) =>
+  logging ? console.log.apply(this, args) : null;

@@ -29,28 +29,48 @@ module.exports = (page) => {
           line.words.forEach((word) => {
             word.symbols.forEach((sym) => {
               symbols.push({
-                ...sym, page, block, paragraph, line, word,
+                ...sym,
+                page,
+                block,
+                paragraph,
+                line,
+                word,
               });
             });
             words.push({
-              ...word, page, block, paragraph, line,
+              ...word,
+              page,
+              block,
+              paragraph,
+              line,
             });
           });
           lines.push({
-            ...line, page, block, paragraph,
+            ...line,
+            page,
+            block,
+            paragraph,
           });
         });
         paragraphs.push({
-          ...paragraph, page, block,
+          ...paragraph,
+          page,
+          block,
         });
       });
       blocks.push({
-        ...block, page,
+        ...block,
+        page,
       });
     });
   }
 
   return {
-    ...page, blocks, paragraphs, lines, words, symbols,
+    ...page,
+    blocks,
+    paragraphs,
+    lines,
+    words,
+    symbols,
   };
 };

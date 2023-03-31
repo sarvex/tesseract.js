@@ -27,7 +27,7 @@ module.exports = () => {
     }
   };
 
-  const queue = (action, payload) => (
+  const queue = (action, payload) =>
     new Promise((resolve, reject) => {
       const job = createJob({ action, payload });
       jobQueue.push(async (w) => {
@@ -45,8 +45,7 @@ module.exports = () => {
       log(`[${id}]: Add ${job.id} to JobQueue`);
       log(`[${id}]: JobQueue length=${jobQueue.length}`);
       dequeue();
-    })
-  );
+    });
 
   const addWorker = (w) => {
     workers[w.id] = w;
@@ -58,8 +57,11 @@ module.exports = () => {
 
   const addJob = async (action, ...payload) => {
     if (getNumWorkers() === 0) {
-      throw Error(`[${id}]: You need to have at least one worker before adding jobs`);
+      throw Error(
+        `[${id}]: You need to have at least one worker before adding jobs`,
+      );
     }
+
     return queue(action, payload);
   };
 
