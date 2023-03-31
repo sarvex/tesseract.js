@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-const path = require('path');
-const { createWorker } = require('../../');
+import path from 'path';
+import { createWorker } from '../../';
 
 (async () => {
   const worker = await createWorker();

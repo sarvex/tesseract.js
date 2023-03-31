@@ -1,10 +1,7 @@
 const path = require('path');
-const webpack = require('webpack');
 const common = require('./webpack.config.common');
 
-const genConfig = ({
-  entry, filename, library, libraryTarget,
-}) => ({
+genConfig = ({ entry, filename, library, libraryTarget }) => ({
   ...common,
   mode: 'production',
   devtool: 'source-map',
@@ -25,7 +22,14 @@ module.exports = [
     libraryTarget: 'umd',
   }),
   genConfig({
-    entry: path.resolve(__dirname, '..', 'src', 'worker-script', 'browser', 'index.js'),
+    entry: path.resolve(
+      __dirname,
+      '..',
+      'src',
+      'worker-script',
+      'browser',
+      'index.js',
+    ),
     filename: 'worker.min.js',
   }),
 ];

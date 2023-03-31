@@ -1,6 +1,6 @@
-import commonjs from "@rollup/plugin-commonjs";
+const commonjs = require("@rollup/plugin-commonjs");
 
-export default [
+module.exports = exports = [
   {
     input: "dist/tesseract.min.js",
     output: {

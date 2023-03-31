@@ -5,10 +5,11 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  plugins: ['prettier'],
+  plugins: ['prettier', 'import'],
   extends: [
     'standard',
     'eslint:recommended',
+    'plugin:import/recommended',
     'plugin:prettier/recommended',
     'prettier',
   ],
